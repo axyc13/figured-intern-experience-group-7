@@ -222,6 +222,11 @@ onBeforeUnmount(() => {
           </table>
         </div>
 
+        <div class="bg-blue-50 border border-blue-200 rounded-2xl p-4 shadow-sm">
+  <h3 class="font-semibold text-blue-900 mb-2">AI Insights</h3>
+  <p class="text-blue-800 text-sm">"Operating expenses spike in July suggests investigating cost controls..."</p>
+</div>
+
         <!-- Link to raw API (handy for reviewers) -->
         <div class="text-center">
           <a href="/api/financial-report" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-900 text-white hover:bg-black text-sm">
