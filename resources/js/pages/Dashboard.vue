@@ -1,11 +1,19 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3'
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 
 // --- State ---
 const reportData = ref<any>(null)
 const loading = ref(true)
 const error = ref<string | null>(null)
+
+// Chart.js (via CDN or install chart.js & vue-chartjs for production)
+import { Chart, registerables } from 'chart.js'
+Chart.register(...registerables)
+import { onBeforeUnmount } from 'vue'
+
+const chartRef = ref<HTMLCanvasElement | null>(null)
+let chartInstance: Chart | null = null
 
 // --- Fetch ---
 async function fetchFinancialData(){
@@ -43,6 +51,93 @@ const operSurplus = computed(() => reportData.value?.summary?.find((r:any)=>r.na
 // Recent (last 4 months, excluding Total)
 const recentMonths = computed(() => (reportData.value?.columns || []).slice(-5, -1))
 const recentNetProfit = computed(() => (reportData.value?.summary?.find((r:any)=>r.name==='Net Profit')?.values || []).slice(-5, -1))
+
+// --- Chart Data ---
+const chartLabels = computed(() =>
+  (reportData.value?.columns || [])
+    .filter((c:any) => c.month !== 'Total')
+    .map((c:any) => c.month)
+)
+
+const netProfitByMonth = computed(() =>
+  (reportData.value?.summary?.find((r:any)=>r.name==='Net Profit')?.values || []).slice(0, -1)
+)
+
+const incomeByMonth = computed(() =>
+  sectionById('income')?.total?.values?.slice(0, -1) || []
+)
+
+const opexByMonth = computed(() =>
+  sectionById('operating_expenses')?.total?.values?.slice(0, -1) || []
+)
+
+// --- Chart Render ---
+function renderChart() {
+  if (!chartRef.value || !reportData.value) return
+
+  if (chartInstance) {
+    chartInstance.destroy()
+  }
+
+  chartInstance = new Chart(chartRef.value, {
+    type: 'line',
+    data: {
+      labels: chartLabels.value,
+      datasets: [
+        {
+          label: 'Net Profit',
+          data: netProfitByMonth.value,
+          borderColor: '#2563eb',
+          backgroundColor: 'rgba(37,99,235,0.1)',
+          tension: 0.3,
+          fill: false,
+        },
+        {
+          label: 'Income',
+          data: incomeByMonth.value,
+          borderColor: '#22c55e',
+          backgroundColor: 'rgba(34,197,94,0.1)',
+          tension: 0.3,
+          fill: false,
+        },
+        {
+          label: 'Operating Expenses',
+          data: opexByMonth.value,
+          borderColor: '#ef4444',
+          backgroundColor: 'rgba(239,68,68,0.1)',
+          tension: 0.3,
+          fill: false,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: true }
+      },
+      scales: {
+        y: {
+          beginAtZero: false,
+          ticks: {
+            callback: function(value: number) {
+              return formatCurrency(value)
+            }
+          }
+        }
+      }
+    }
+  })
+}
+
+watch(reportData, () => {
+  if (reportData.value) {
+    setTimeout(renderChart, 100) // wait for DOM
+  }
+})
+
+onBeforeUnmount(() => {
+  if (chartInstance) chartInstance.destroy()
+})
 </script>
 
 <template>
@@ -95,6 +190,14 @@ const recentNetProfit = computed(() => (reportData.value?.summary?.find((r:any)=
           <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
             <div class="text-xs uppercase text-gray-500">Net Profit (Total)</div>
             <div class="text-2xl font-semibold mt-1" :class="netProfit < 0 ? 'text-red-600' : ''">{{ formatCurrency(netProfit) }}</div>
+          </div>
+        </div>
+
+        <!-- Chart -->
+        <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+          <h3 class="text-sm font-semibold text-gray-800 mb-3">Monthly Trends</h3>
+          <div class="w-full overflow-x-auto">
+            <canvas ref="chartRef" height="80"></canvas>
           </div>
         </div>
 
