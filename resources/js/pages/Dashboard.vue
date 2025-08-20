@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3'
 import { ref, onMounted, computed } from 'vue'
+import NetProfitChart from './NetProfitChart.vue'
+
 
 // --- State ---
 const reportData = ref<any>(null)
@@ -52,7 +54,7 @@ const recentNetProfit = computed(() => (reportData.value?.summary?.find((r:any)=
       <!-- Header -->
       <div class="mb-6 flex items-center justify-between">
         <div>
-          <h1 class="text-2xl md:text-3xl font-bold text-gray-900">🌾 Windy Farm — Profit & Loss</h1>
+          <h1 class="text-2xl md:text-3xl font-bold text-gray-900">🌾 Windy Farm: Profit & Loss</h1>
           <p class="text-gray-600 text-sm" v-if="reportData">
             {{ reportData.company.report_type }} • {{ reportData.company.basis }} • {{ reportData.company.period }}
           </p>
@@ -119,6 +121,13 @@ const recentNetProfit = computed(() => (reportData.value?.summary?.find((r:any)=
           </table>
         </div>
 
+        <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
+          <h3 class="text-sm font-semibold text-gray-800 mb-3">Net Profit Trend</h3>
+          <NetProfitChart
+            :labels="recentMonths.map(m => m.month)"
+            :values="recentNetProfit"
+          />
+        </div>
         <!-- Link to raw API (handy for reviewers) -->
         <div class="text-center">
           <a href="/api/financial-report" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-900 text-white hover:bg-black text-sm">
