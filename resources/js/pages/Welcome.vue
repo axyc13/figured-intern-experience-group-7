@@ -90,6 +90,14 @@ import { Head, Link } from '@inertiajs/vue3';
                             </Link>
                         </li>
                         <li>
+                            <Link
+                                href="/dashboard"
+                                class="inline-block rounded-sm bg-[#296fdc] px-5 py-1.5 text-sm leading-normal text-white hover:border-black hover:bg-[#225EBB] dark:border-[#eeeeec] dark:bg-[#eeeeec] dark:text-[#1C1C1A] dark:hover:border-white dark:hover:bg-white"
+                            >
+                                Visit Dashboard
+                            </Link>
+                        </li>
+                        <li>
                             <a
                                 href="/CHALLENGE.md"
                                 target="_blank"
